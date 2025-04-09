@@ -29,11 +29,12 @@ public class MenuController : MonoBehaviour
     [SerializeField] Button _submitButton;
     [SerializeField] TextMeshProUGUI _hintText;
 
+    [SerializeField] string[] Resources = { "Wood", "Stone", "Iron" };
 
     [SerializeField] int _targetNumber = 0;
     [SerializeField] int _attemptCount = 0;
 
-    [SerializeField] VillageActivation _currentVillage;
+    [SerializeField] Village _currentVillage;
 
     /* Other states */
     Vector2 _lastRightClickPosition;
@@ -108,10 +109,10 @@ public class MenuController : MonoBehaviour
 
     // Updown game logic should split later
     #region Updown Game
-    public void StartUpDownGame(VillageActivation village)
+    public void StartUpDownGame(Village village)
     {
         _currentVillage = village;
-        _targetNumber = Random.Range(1, 10);
+        _targetNumber = Random.Range(village.MinValue, village.MaxValue);
         _attemptCount = 0;
         _hintText.text = "Select number between 1 to 9";
         _numberInput.text = "";
@@ -123,7 +124,7 @@ public class MenuController : MonoBehaviour
         if (int.TryParse(_numberInput.text, out int guess))
         {
             _attemptCount++;
-            if (guess < 1 || guess > 9)
+            if (guess < _currentVillage.MinValue || guess > _currentVillage.MaxValue)
             {
                 _hintText.text = "Select number between 1 to 9";
             }

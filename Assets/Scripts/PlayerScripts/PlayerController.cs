@@ -95,7 +95,7 @@ public class PlayerController : MonoBehaviour
 
         if (hit.collider != null && (hit.collider.CompareTag("Manor") || hit.collider.CompareTag("Village")))
         {
-            VillageActivation villageActivation = hit.collider.GetComponent<VillageActivation>();
+            Village villageActivation = hit.collider.GetComponent<Village>();
             if (villageActivation != null && !villageActivation.IsActived)
             {
                 _menuController.StartUpDownGame(villageActivation);
