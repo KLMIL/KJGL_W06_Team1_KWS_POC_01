@@ -85,7 +85,23 @@ public class PlayerController : MonoBehaviour
     }
 
     private void OnLeftClickStarted()
-    {
+    { 
+        Vector3 worldPoint = _mainCamera.ScreenToWorldPoint(new Vector3(
+                _inputManager.LastMousePosition.x, 
+                _inputManager.LastMousePosition.y,
+                _mainCamera.nearClipPlane
+            ));
+        RaycastHit2D hit = Physics2D.Raycast(worldPoint, Vector2.zero);
+
+        if (hit.collider != null && (hit.collider.CompareTag("Manor") || hit.collider.CompareTag("Village")))
+        {
+            VillageActivation villageActivation = hit.collider.GetComponent<VillageActivation>();
+            if (villageActivation != null && !villageActivation.IsActived)
+            {
+                _menuController.StartUpDownGame(villageActivation);
+                return;
+            }
+        }
         _isDragging = true;
         _previousMousePosition = _inputManager.LastMousePosition;
     }
