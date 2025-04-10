@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -29,18 +30,30 @@ public class MenuController : MonoBehaviour
     [SerializeField] TMP_InputField _numberInput;
     [SerializeField] Button _submitButton;
     [SerializeField] TextMeshProUGUI _hintText;
-
     [SerializeField] Button _startButton;
     [SerializeField] TextMeshProUGUI _resourceRequirementText;
-
     [SerializeField] Button _closeButton;
-
-    [SerializeField] string[] _resources = { "Wood", "Stone", "Iron" };
 
     [SerializeField] int _targetNumber = 0;
     [SerializeField] int _attemptCount = 0;
-
     [SerializeField] Village _currentVillage;
+
+
+    [Header("Crafting")]
+    [SerializeField] string[] _resources = { "Wood", "Stone", "Iron" };
+
+    [SerializeField] TextMeshProUGUI _plankText;
+    [SerializeField] Button _plankCraftButton;
+    [SerializeField] Slider _plankProgressBar;
+
+    [SerializeField] TextMeshProUGUI _stoneAxeText;
+    [SerializeField] Button _stoneAxeCraftButton;
+    [SerializeField] Slider _stoneAxeProgressBar;
+
+    [SerializeField] TextMeshProUGUI _IronAxeText;
+    [SerializeField] Button _IronAxeCraftButton;
+    [SerializeField] Slider _IronAxeProgressBar;
+
 
     /* Other states */
     Vector2 _lastRightClickPosition;
@@ -64,6 +77,14 @@ public class MenuController : MonoBehaviour
         _closeButton.onClick.AddListener(CloseUpDownGameCanvas);
 
         _contextMenu.SetActive(false);
+        InitializeCraftingUI();
+
+        CraftManager.Instance.OnInventoryUpdated.AddListener(UpdateCraftingUI);
+    }
+
+    private void OnDestroy()
+    {
+        CraftManager.Instance.OnInventoryUpdated.RemoveListener(UpdateCraftingUI);
     }
 
 
@@ -205,6 +226,91 @@ public class MenuController : MonoBehaviour
             UpdateResourceRequirement();
             yield return new WaitForSeconds(1f);
         }
+    }
+    #endregion
+
+
+    #region Crafting
+
+    private void InitializeCraftingUI()
+    {
+        var items = CraftManager.Instance.GetCraftableItems();
+
+        // Make Plank 
+        UpdateCraftItemText(_plankText, items[0]);
+        _plankCraftButton.onClick.AddListener(() => StartCrafting(0));
+        _plankProgressBar.value = 0f;
+
+        CraftManager.Instance.OnCraftingStarted.AddListener((name) =>
+        {
+            if (name == items[0].ItemName) StartCoroutine(UpdateProgressBar(_plankProgressBar, items[0].CraftingTime));
+        });
+        CraftManager.Instance.OnCraftingCompleted.AddListener((name) =>
+        {
+            if (name == items[0].ItemName) _plankProgressBar.value = 0f;
+        });
+
+        // Make Stone Axe
+        UpdateCraftItemText(_stoneAxeText, items[1]);
+        _stoneAxeCraftButton.onClick.AddListener(() => StartCrafting(1));
+        _stoneAxeProgressBar.value = 0f;
+
+        CraftManager.Instance.OnCraftingStarted.AddListener((name) =>
+        {
+            if (name == items[1].ItemName) StartCoroutine(UpdateProgressBar(_stoneAxeProgressBar, items[1].CraftingTime));
+        });
+        CraftManager.Instance.OnCraftingCompleted.AddListener((name) =>
+        {
+            if (name == items[1].ItemName) _stoneAxeProgressBar.value = 0f;
+        });
+
+        // Make Iron Axe
+        UpdateCraftItemText(_IronAxeText, items[2]);
+        _IronAxeCraftButton.onClick.AddListener(() => StartCrafting(2));
+        _IronAxeProgressBar.value = 0f;
+
+        CraftManager.Instance.OnCraftingStarted.AddListener((name) =>
+        {
+            if (name == items[2].ItemName) StartCoroutine(UpdateProgressBar(_IronAxeProgressBar, items[2].CraftingTime));
+        });
+        CraftManager.Instance.OnCraftingCompleted.AddListener((name) =>
+        {
+            if (name == items[2].ItemName) _IronAxeProgressBar.value = 0f;
+        });
+    }
+
+    private void StartCrafting(int index)
+    {
+        var item = CraftManager.Instance.GetCraftableItems()[index];
+        CraftManager.Instance.StartCrafting(item);
+    }
+
+    private void UpdateCraftingUI()
+    {
+        var items = CraftManager.Instance.GetCraftableItems();
+        UpdateCraftItemText(_plankText, items[0]);
+        UpdateCraftItemText(_stoneAxeText, items[1]);
+        UpdateCraftItemText(_IronAxeText, items[2]);
+    }
+
+    private void UpdateCraftItemText(TextMeshProUGUI itemText, CraftItem item)
+    {
+        int count = CraftManager.Instance.GetCraftedItemCount(item.ItemName);
+        itemText.text = $"{item.ItemName}\n" +
+                        string.Join("\n", item.RequiredResources.Select(r => $"{r.Key}: {r.Value}")) +
+                        $"\nOwned: {count}";
+    }
+
+    private IEnumerator UpdateProgressBar(Slider progressBar, float duration)
+    {
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            progressBar.value = elapsed / duration;
+            yield return null;
+        }
+        progressBar.value = 1f;
     }
     #endregion
 }
