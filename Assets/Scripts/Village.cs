@@ -17,8 +17,13 @@ public class Village : MonoBehaviour
     [SerializeField] string _resourceType = "Wood";
     [SerializeField] int _resourcePerSecond = 1;
 
+    [SerializeField] string _perchaseResourceType = "Wood";
+    [SerializeField] int _perchaseResourceCost = 5;
+
     public string ResourceType => _resourceType;
     public int ResourcePerSecond => _resourcePerSecond;
+    public string PerchaseResourceType => _perchaseResourceType;
+    public int PerchaseResourceCost => _perchaseResourceCost;
 
     /* Assign in inspector */
 

@@ -1,3 +1,4 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -29,7 +30,12 @@ public class MenuController : MonoBehaviour
     [SerializeField] Button _submitButton;
     [SerializeField] TextMeshProUGUI _hintText;
 
-    [SerializeField] string[] Resources = { "Wood", "Stone", "Iron" };
+    [SerializeField] Button _startButton;
+    [SerializeField] TextMeshProUGUI _resourceRequirementText;
+
+    [SerializeField] Button _closeButton;
+
+    [SerializeField] string[] _resources = { "Wood", "Stone", "Iron" };
 
     [SerializeField] int _targetNumber = 0;
     [SerializeField] int _attemptCount = 0;
@@ -38,6 +44,7 @@ public class MenuController : MonoBehaviour
 
     /* Other states */
     Vector2 _lastRightClickPosition;
+    Coroutine _resourceUpdateCoroutine;
 
     
 
@@ -52,6 +59,9 @@ public class MenuController : MonoBehaviour
         _upgradeBackButton.onClick.AddListener(HideAllCanvases);
 
         _submitButton.onClick.AddListener(OnSubmitNumber);
+        _startButton.onClick.AddListener(StartUpDownGameWithCost);
+
+        _closeButton.onClick.AddListener(CloseUpDownGameCanvas);
 
         _contextMenu.SetActive(false);
     }
@@ -104,6 +114,11 @@ public class MenuController : MonoBehaviour
     {
         _contextMenu.SetActive(false);
     }
+
+    public void CloseUpDownGameCanvas()
+    {
+        _upDownGameCanvas.SetActive(false);
+    }
     #endregion
 
 
@@ -112,11 +127,34 @@ public class MenuController : MonoBehaviour
     public void StartUpDownGame(Village village)
     {
         _currentVillage = village;
-        _targetNumber = Random.Range(village.MinValue, village.MaxValue);
-        _attemptCount = 0;
-        _hintText.text = "Select number between 1 to 9";
+        _hintText.text = $"Select number between {village.MinValue} to {village.MaxValue}";
         _numberInput.text = "";
+        UpdateResourceRequirement();
         ShowCanvas(_upDownGameCanvas);
+        _submitButton.gameObject.SetActive(false);
+        _startButton.gameObject.SetActive(true);
+
+        if (_resourceUpdateCoroutine != null)
+        {
+            StopCoroutine(_resourceUpdateCoroutine);
+        }
+        _resourceUpdateCoroutine = StartCoroutine(ResourceRequirementUpdateCoroutine());
+    }
+
+    private void StartUpDownGameWithCost()
+    {
+        if (GameManager.Instance.UseResource(_currentVillage.PerchaseResourceType, _currentVillage.PerchaseResourceCost))
+        {
+            _targetNumber = Random.Range(_currentVillage.MinValue, _currentVillage.MaxValue);
+            _attemptCount = 0;
+            _hintText.text = $"Select number between {_currentVillage.MinValue} to {_currentVillage.MaxValue}";
+            _submitButton.gameObject.SetActive(true);
+            _startButton.gameObject.SetActive(false);
+        }
+        else
+        {
+            _hintText.text = "More resource are require!!";
+        }
     }
 
     private void OnSubmitNumber()
@@ -151,5 +189,21 @@ public class MenuController : MonoBehaviour
         _numberInput.text = "";
     }
 
+    private void UpdateResourceRequirement()
+    {
+        int currentAmount = GameManager.Instance.GetResource(_currentVillage.PerchaseResourceType);
+        int requiredAmount = _currentVillage.PerchaseResourceCost;
+        _resourceRequirementText.text = $"{_currentVillage.PerchaseResourceType}: {currentAmount} / {requiredAmount}";
+        _startButton.interactable = currentAmount >= requiredAmount;
+    }
+
+    private IEnumerator ResourceRequirementUpdateCoroutine()
+    {
+        while (_upDownGameCanvas.activeSelf && _currentVillage != null)
+        {
+            UpdateResourceRequirement();
+            yield return new WaitForSeconds(1f);
+        }
+    }
     #endregion
 }

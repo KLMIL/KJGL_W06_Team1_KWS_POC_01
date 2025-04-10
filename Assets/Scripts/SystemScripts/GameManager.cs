@@ -85,6 +85,18 @@ public class GameManager : MonoBehaviour
         {
             resources[resourceName] = amount;
         }
+        UpdateResourceUI();
+    }
+
+    public bool UseResource(string resourceName, int amount)
+    {
+        if (resources.ContainsKey(resourceName) && resources[resourceName] >= amount)
+        {
+            resources[resourceName] -= amount;
+            UpdateResourceUI();
+            return true;
+        }
+        return false;
     }
 
     public int GetResource(string resourceName)
