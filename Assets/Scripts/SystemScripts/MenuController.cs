@@ -143,13 +143,14 @@ public class MenuController : MonoBehaviour
 
     private void StartUpDownGameWithCost()
     {
-        if (GameManager.Instance.UseResource(_currentVillage.PerchaseResourceType, _currentVillage.PerchaseResourceCost))
+        if (GameManager.Instance.UseResource(_currentVillage.PurchaseResourceType, _currentVillage.PurchaseResourceCost))
         {
             _targetNumber = Random.Range(_currentVillage.MinValue, _currentVillage.MaxValue);
             _attemptCount = 0;
             _hintText.text = $"Select number between {_currentVillage.MinValue} to {_currentVillage.MaxValue}";
             _submitButton.gameObject.SetActive(true);
             _startButton.gameObject.SetActive(false);
+            UpdateResourceRequirement();
         }
         else
         {
@@ -191,9 +192,9 @@ public class MenuController : MonoBehaviour
 
     private void UpdateResourceRequirement()
     {
-        int currentAmount = GameManager.Instance.GetResource(_currentVillage.PerchaseResourceType);
-        int requiredAmount = _currentVillage.PerchaseResourceCost;
-        _resourceRequirementText.text = $"{_currentVillage.PerchaseResourceType}: {currentAmount} / {requiredAmount}";
+        int currentAmount = GameManager.Instance.GetResource(_currentVillage.PurchaseResourceType);
+        int requiredAmount = _currentVillage.PurchaseResourceCost;
+        _resourceRequirementText.text = $"{_currentVillage.PurchaseResourceType}: {currentAmount} / {requiredAmount}";
         _startButton.interactable = currentAmount >= requiredAmount;
     }
 
