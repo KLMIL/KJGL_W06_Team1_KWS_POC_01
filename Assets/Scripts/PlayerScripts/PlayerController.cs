@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -25,6 +26,11 @@ public class PlayerController : MonoBehaviour
     Vector2 _mapMinBounds;
     Vector2 _mapMaxBounds;
 
+    [Header("Mouse Wheel Event State Field")]
+    [SerializeField] float _zoomSpeed = 1f;
+    [SerializeField] float _minZoom = 2f;
+    [SerializeField] float _maxZoom = 10f;
+
 
 
     #region Initialization
@@ -51,6 +57,7 @@ public class PlayerController : MonoBehaviour
         _inputManager.OnLeftClickStarted += OnLeftClickStarted;
         _inputManager.OnLeftClickCanceled += OnLeftClickCanceled;
         _inputManager.OnRightClick += OnRightClick;
+        _inputManager.OnMouseWheel += OnMouseWheel;
     }
     private void DeleteInputActions()
     {
@@ -58,6 +65,7 @@ public class PlayerController : MonoBehaviour
         _inputManager.OnLeftClickStarted -= OnLeftClickStarted;
         _inputManager.OnLeftClickCanceled -= OnLeftClickCanceled;
         _inputManager.OnRightClick -= OnRightClick;
+        _inputManager.OnMouseWheel -= OnMouseWheel;
 
         _inputManager.Disable();
         _inputManager.Dispose();
@@ -115,7 +123,8 @@ public class PlayerController : MonoBehaviour
 
         Vector3 moveDirection = new Vector3(-delta.x, -delta.y, 0) * _dragSpeed;
         Vector3 newPosition = _mainCamera.transform.position + moveDirection;
-        
+
+        SetupMapBounds();
         newPosition.x = Mathf.Clamp(newPosition.x, _mapMinBounds.x, _mapMaxBounds.x);
         newPosition.y = Mathf.Clamp(newPosition.y, _mapMinBounds.y, _mapMaxBounds.y);
         
@@ -165,6 +174,22 @@ public class PlayerController : MonoBehaviour
             _menuController.ShowContextMenu(_inputManager.LastMousePosition);
         }
     }
+
+    private void OnMouseWheel(float delta)
+    {
+        if (_mainCamera == null) return;
+
+        float newSize = _mainCamera.orthographicSize - delta * _zoomSpeed;
+        _mainCamera.orthographicSize = Mathf.Clamp(newSize, _minZoom, _maxZoom);
+
+        Vector3 newPosition = _mainCamera.transform.position;
+        SetupMapBounds();
+
+        newPosition.x = Mathf.Clamp(newPosition.x, _mapMinBounds.x, _mapMaxBounds.x);
+        newPosition.y = Mathf.Clamp(newPosition.y, _mapMinBounds.y, _mapMaxBounds.y);
+        _mainCamera.transform.position = newPosition;
+    }
+
     #endregion
 
 

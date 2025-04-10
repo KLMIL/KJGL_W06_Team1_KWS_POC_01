@@ -8,13 +8,15 @@ public class InputManager
 
 
     /* Event Delegate */
-    public System.Action<Vector2> OnMousePositionChanged;
-    public System.Action OnLeftClickStarted;
-    public System.Action OnLeftClickCanceled;
-    public System.Action OnRightClick;
+    public event System.Action<Vector2> OnMousePositionChanged;
+    public event System.Action OnLeftClickStarted;
+    public event System.Action OnLeftClickCanceled;
+    public event System.Action OnRightClick;
+    public event System.Action<float> OnMouseWheel;
 
     public InputManager()
     {
+        _inputActions = new InputSystem_Actions();
         SetupInputActions();
         Enable();
     }
@@ -22,12 +24,11 @@ public class InputManager
 
     private void SetupInputActions()
     {
-        _inputActions = new InputSystem_Actions();
-
         _inputActions.Player.MousePosition.performed += ctx => OnMousePosition(ctx);
         _inputActions.Player.MouseLeftClick.started += ctx => OnLeftClickStarted?.Invoke();
         _inputActions.Player.MouseLeftClick.canceled += ctx => OnLeftClickCanceled?.Invoke();
         _inputActions.Player.MouseRightClick.performed += ctx => OnRightClick?.Invoke();
+        _inputActions.Player.MouseWheel.performed += ctx => OnMouseWheel?.Invoke(ctx.ReadValue<Vector2>().y);
     }
 
 
