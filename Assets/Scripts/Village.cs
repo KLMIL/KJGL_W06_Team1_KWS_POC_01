@@ -14,6 +14,11 @@ public class Village : MonoBehaviour
     public int MinValue => _minValue;
     public int MaxValue => _maxValue;
 
+    [SerializeField] string _resourceType = "Wood";
+    [SerializeField] int _resourcePerSecond = 1;
+
+    public string ResourceType => _resourceType;
+    public int ResourcePerSecond => _resourcePerSecond;
 
     /* Assign in inspector */
 

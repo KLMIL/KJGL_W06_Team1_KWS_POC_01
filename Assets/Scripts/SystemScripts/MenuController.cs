@@ -140,6 +140,7 @@ public class MenuController : MonoBehaviour
             {
                 _hintText.text = "Correct!";
                 _currentVillage.Activate();
+                GameManager.Instance.AddVillage(_currentVillage);
                 Invoke(nameof(HideAllCanvases), 1f);
             }
         }
