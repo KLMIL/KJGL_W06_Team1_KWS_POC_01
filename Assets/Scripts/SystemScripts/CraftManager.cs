@@ -18,7 +18,7 @@ public class CraftManager : MonoBehaviour
             new Dictionary<string, int> { { "Wood", 3 }, { "Stone", 2} }, 2f
             ),
         new CraftItem("IronAxe",
-            new Dictionary<string, int> { { "Wood", 5 }, {"Iorn", 3 } }, 3f
+            new Dictionary<string, int> { { "Wood", 5 }, {"Iron", 3 } }, 3f
             )
     };
 
