@@ -8,6 +8,7 @@ public class PlayerController : MonoBehaviour
     /* Assign on inspector */
     [Header("Assign Field")]
     [SerializeField] MenuController _menuController;
+    [SerializeField] SpriteRenderer _background;
 
     /* Assign in scripts */
     InputManager _inputManager;
@@ -20,6 +21,9 @@ public class PlayerController : MonoBehaviour
 
     Vector2 _previousMousePosition;
 
+    /* Other state */
+    Vector2 _mapMinBounds;
+    Vector2 _mapMaxBounds;
 
 
 
@@ -33,6 +37,7 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         AddInputActions();
+        SetupMapBounds();
     }
 
     private void OnDestroy()
@@ -57,6 +62,28 @@ public class PlayerController : MonoBehaviour
         _inputManager.Disable();
         _inputManager.Dispose();
     }
+
+    private void SetupMapBounds()
+    {
+        if (_background == null)
+        {
+            Debug.LogError("Background spriterenderer is not assigned");
+            return;
+        }
+
+        Bounds bounds = _background.bounds;
+        Vector2 camSize = GetCameraSize();
+
+        _mapMinBounds = new Vector2(
+                bounds.min.x + camSize.x / 2,
+                bounds.min.y + camSize.y / 2
+            );
+        _mapMaxBounds = new Vector2(
+                bounds.max.x - camSize.x / 2,
+                bounds.max.y - camSize.y / 2
+            );
+    }
+
     #endregion
 
 
@@ -70,6 +97,11 @@ public class PlayerController : MonoBehaviour
     #region Action Events
     private void OnMousePositionChanged(Vector2 mousePosition)
     {
+        Vector2 clampedPosition = new Vector2(
+                Mathf.Clamp(mousePosition.x, 0, Screen.width),
+                Mathf.Clamp(mousePosition.y, 0, Screen.height)
+            );
+
         if (_isDragging)
         {
             Vector2 delta = mousePosition - _previousMousePosition;
@@ -80,8 +112,14 @@ public class PlayerController : MonoBehaviour
     private void MoveMap(Vector2 delta)
     {
         if (_mainCamera == null) return;
+
         Vector3 moveDirection = new Vector3(-delta.x, -delta.y, 0) * _dragSpeed;
-        _mainCamera.transform.position += moveDirection;
+        Vector3 newPosition = _mainCamera.transform.position + moveDirection;
+        
+        newPosition.x = Mathf.Clamp(newPosition.x, _mapMinBounds.x, _mapMaxBounds.x);
+        newPosition.y = Mathf.Clamp(newPosition.y, _mapMinBounds.y, _mapMaxBounds.y);
+        
+        _mainCamera.transform.position = newPosition;
     }
 
     private void OnLeftClickStarted()
@@ -103,7 +141,10 @@ public class PlayerController : MonoBehaviour
             }
         }
         _isDragging = true;
-        _previousMousePosition = _inputManager.LastMousePosition;
+        _previousMousePosition = new Vector2(
+                Mathf.Clamp(_inputManager.LastMousePosition.x, 0, Screen.width),
+                Mathf.Clamp(_inputManager.LastMousePosition.y, 0, Screen.height)
+            );
     }
 
     private void OnLeftClickCanceled()
@@ -128,4 +169,13 @@ public class PlayerController : MonoBehaviour
 
 
 
+    #region Utility
+    private Vector2 GetCameraSize()
+    {
+        float height = _mainCamera.orthographicSize * 2;
+        float width = height * _mainCamera.aspect;
+
+        return new Vector2(width, height);
+    }
+    #endregion
 }
